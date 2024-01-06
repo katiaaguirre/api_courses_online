@@ -3,6 +3,8 @@
 namespace App\Models\Course;
 
 use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Course\CourseSection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +17,9 @@ class Course extends Model
         "title",
         "subtitle",
         "slug",
-        "imagen",
+        "image",
+        "precio_usd",
+        "precio_mxn",
         "category_id",
         "sub_category_id",
         "user_id",
@@ -25,7 +29,7 @@ class Course extends Model
         "time",
         "description",
         "requirements",
-        "whi_is_it_for",
+        "who_is_it_for",
         "state"
     ];
 
@@ -37,5 +41,21 @@ class Course extends Model
    public function setUpdatedAtAttribute($value){
     date_default_timezone_set("America/Mexico_city");
     $this->attributes["updated_at"] = Carbon::now();
+   }
+
+   public function instructor(){
+    return $this->belongsTo(User::class, 'user_id');
+   }
+
+   public function category(){
+    return $this->belongsTo(Category::class);
+   }
+
+   public function sub_category(){
+    return $this->belongsTo(Category::class);
+   }
+
+   public function sections(){
+    return $this->belongsTo(CourseSection::class);
    }
 }

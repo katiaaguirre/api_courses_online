@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\Course\CourseGController;
 use App\Http\Controllers\Admin\Course\CategoryController;
 
 /*
@@ -41,4 +42,8 @@ Route::group([
 
     Route::resource('/category', CategoryController::class);
     Route::post('/category/{id}', [CategoryController::class, "update"]);
+
+    Route::get('/course/config', [CourseGController::class, "config"]);
+    Route::resource('/course', CourseGController::class);
+    Route::post('/course/{id}', [CourseGController::class, "update"]);
 });
