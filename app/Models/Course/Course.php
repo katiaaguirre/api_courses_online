@@ -58,4 +58,15 @@ class Course extends Model
    public function sections(){
     return $this->belongsTo(CourseSection::class);
    }
+
+   function scopeFilterAdvance($query, $search, $state){
+    if($search){
+        $query->where("title","like","%".$search."%");
+    }
+    if($state){
+        $query->where("state", $state);
+    }
+
+    return $query;
+}
 }
