@@ -2,8 +2,10 @@
 
 namespace App\Models\Course;
 
+use Carbon\Carbon;
 use App\Models\Course\CourseClase;
 use App\Models\Course\CourseSection;
+use App\Models\Course\CourseClaseFile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +17,8 @@ class CourseClase extends Model
     protected $fillable = [
         "course_section_id",
         "name",
-        "vimeo_id",
+        "description",
+        "url_video",
         "time",
         "state"
     ];
@@ -35,6 +38,7 @@ class CourseClase extends Model
    }
 
    public function files(){
-    return $this->belongsTo(CourseClaseFile::class, "course_clase_id");
+    return $this->hasMany(CourseClaseFile::class, "course_clase_id");
    }
+   
 }

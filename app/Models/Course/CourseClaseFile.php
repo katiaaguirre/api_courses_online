@@ -30,4 +30,11 @@ class CourseClaseFile extends Model
     date_default_timezone_set("America/Mexico_city");
     $this->attributes["updated_at"] = Carbon::now();
    }
+
+   public function getSizeAttribute($size){
+        $size = (int) $size;
+        $base = log($size) / log(1024);
+        $suffixes = array(' bytes', ' KB', ' MB', ' GB', ' TB');
+        return round(pow(1024, $base - floor($base)), 2) . $suffixes[floor($base)];
+    }
 }

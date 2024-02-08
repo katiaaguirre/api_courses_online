@@ -25,7 +25,7 @@ class Course extends Model
         "user_id",
         "level",
         "idioma",
-        "vimeo_id",
+        "url_video",
         "time",
         "description",
         "requirements",

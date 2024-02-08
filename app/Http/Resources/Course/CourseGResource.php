@@ -40,7 +40,7 @@ class CourseGResource extends JsonResource
             ],
             "level" => $this->resource->level,
             "idioma" => $this->resource->idioma,
-            "vimeo_id" => $this->resource->vimeo_id,
+            "url_video" => $this->resource->url_video,
             "time" => $this->resource->time,
             "description" => $this->resource->description,
             "requirements" => json_decode($this->resource->requirements),
