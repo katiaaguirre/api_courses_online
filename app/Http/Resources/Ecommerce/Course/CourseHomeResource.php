@@ -15,7 +15,6 @@ class CourseHomeResource extends JsonResource
     public function toArray($request)
     {
         $discount_g = null;
-
         if($this->resource->discount_c_t && $this->resource->discount_c){
             $discount_g = $this->resource->discount_c_t;
         }else{
@@ -27,7 +26,7 @@ class CourseHomeResource extends JsonResource
                 }
             }
         }
-
+        
         return [
             "id" => $this->resource->id,
             "title" => $this->resource->title,

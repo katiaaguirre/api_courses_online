@@ -30,6 +30,6 @@ class DiscountCategory extends Model
     }
 
     public function discount(){
-        return $this->belongsTo(Discount::class);
+        return $this->belongsTo(Category::class);
     }
 }
