@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin\Coupon;
 
 use Illuminate\Http\Request;
+use App\Models\Coupon\Coupon;
 use App\Models\Course\Course;
 use App\Models\Course\Category;
 use App\Models\Coupon\CouponCourse;
 use App\Http\Controllers\Controller;
 use App\Models\Coupon\CouponCategory;
+use App\Http\Resources\Course\Coupon\CouponResource;
 use App\Http\Resources\Course\Coupon\CouponCollection;
 
 class CouponController extends Controller
@@ -19,7 +21,9 @@ class CouponController extends Controller
      */
     public function index(Request $request)
     {
-        $coupons = Coupon::orderBy("id","desc")->get();
+        $search = $request->search;
+        $state = $request->state;
+        $coupons = Coupon::filterAdvance($search, $state)->orderBy("id","desc")->get();
 
         return response()->json(["message" => 200, "coupons" => CouponCollection::make($coupons)]);
     }
@@ -62,23 +66,22 @@ class CouponController extends Controller
     public function store(Request $request)
     {
         $EXISTS = Coupon::where("code", $request->code)->first();
-        if($EXISTS){
-
+        if ($EXISTS) {
             return response()->json(["message" => 403, "message_text" => "EL CÓDIGO DEL CUPÓN YA EXISTE"]);
         }
 
         $coupon = Coupon::create($request->all());
 
-        if($request->type_coupon == 1){ // 1 es course
-            foreach ($request->course_selected as $key => $course){
+        if ($request->type_coupon == 1 && !empty($request->course_selected)) {
+            foreach ($request->course_selected as $key => $course) {
                 CouponCourse::create([
                     "coupon_id" => $coupon->id,
                     "course_id" => $course["id"]
                 ]);
             }
         }
-        if($request->type_coupon == 2){ // 2 es categoría
-            foreach ($request->category_selected as $key => $category){
+        if ($request->type_coupon == 2 && !empty($request->category_selected)) { 
+            foreach ($request->category_selected as $key => $category) {
                 CouponCategory::create([
                     "coupon_id" => $coupon->id,
                     "category_id" => $category["id"]
@@ -89,6 +92,7 @@ class CouponController extends Controller
         return response()->json(["message" => 200]);
     }
 
+
     /**
      * Display the specified resource.
      *
@@ -97,7 +101,11 @@ class CouponController extends Controller
      */
     public function show($id)
     {
-        //
+        $coupon = Coupon::findOrFail($id);
+
+        return response()->json([
+            "coupon" => CouponResource::make($coupon)
+        ]);
     }
 
     /**

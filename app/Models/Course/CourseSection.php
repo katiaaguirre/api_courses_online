@@ -34,6 +34,6 @@ class CourseSection extends Model
    }
 
    public function clases(){
-    return $this->belongsTo(CourseClase::class, "course_section_id");
+    return $this->hasMany(CourseClase::class, "course_section_id");
    }
 }

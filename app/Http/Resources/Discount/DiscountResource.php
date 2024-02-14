@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Resources\Course\Coupon;
+namespace App\Http\Resources\Discount;
 
+use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CouponResource extends JsonResource
+class DiscountResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,9 +20,10 @@ class CouponResource extends JsonResource
             "code" => $this->resource->code,
             "type_discount" => $this->resource->type_discount,
             "discount" => $this->resource->discount,
-            "type_count" => $this->resource->type_count,
-            "num_use" => $this->resource->num_use,
-            "type_coupon" => $this->resource->type_coupon,
+            "start_date" => Carbon::parse($this->resource->start_date)->format("Y-m-d"),
+            "end_date" => Carbon::parse($this->resource->end_date)->format("Y-m-d"),
+            "discount_type" => $this->resource->discount_type,
+            "type_campaign" => $this->resource->type_campaign,
             "state" => $this->resource->state ?? 1,
             "courses" => $this->resource->courses->map(function($course_aux){
                 return [

@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Models\Coupon;
+namespace App\Models\Discount;
 
 use Carbon\Carbon;
 use App\Models\Course\Course;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class CouponCourse extends Model
+class DiscountCourse extends Model
 {
     use HasFactory;
     protected $fillable = [
-        "coupon_id",
+        "discount_id",
         "course_id",
     ];
 
@@ -27,5 +27,9 @@ class CouponCourse extends Model
 
     public function course(){
         return $this->belongsTo(Course::class);
+    }
+
+    public function discount(){
+        return $this->belongsTo(Discount::class);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models\Course;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Discount\DiscountCategory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -35,6 +36,14 @@ class Category extends Model
    public function father(){
     return $this->belongsTo(Category::class, "category_id");
    }
+
+   public function courses(){
+    return $this->hasMany(Course::class);
+   }
+
+   public function discount_categories(){
+    return $this->hasMany(DiscountCategory::class);
+}
 
    function scopeFilterAdvance($query, $search, $state){
     if($search){

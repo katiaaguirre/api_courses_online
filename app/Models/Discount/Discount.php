@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Models\Coupon;
+namespace App\Models\Discount;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Coupon extends Model
+class Discount extends Model
 {
     use HasFactory;
     use SoftDeletes;
@@ -15,9 +15,11 @@ class Coupon extends Model
         "code",
         "type_discount",  // 1 es % y 2 es monto fijo
         "discount", // monto de descuento
-        "type_count", // 1 es ilimitado y 2 es limitado
+        "start_date",
+        "end_date",
+        "discount_type",
+        "type_campaign",
         "num_use", // el numero de usos permitidos
-        "type_coupon", // 1 es por productos y 2 es por categorías
         "state"
     ];
 
@@ -32,17 +34,14 @@ class Coupon extends Model
     }
 
     public function courses(){
-        return $this->hasMany(CouponCourse::class);
+        return $this->hasMany(DiscountCourse::class);
     }
 
     public function categories(){
-        return $this->hasMany(CouponCategory::class);
+        return $this->hasMany(DiscountCategory::class);
     }
 
-    function scopeFilterAdvance($query, $search, $state){
-        if($search){
-            $query->where("code","like","%".$search."%");
-        }
+    function scopeFilterAdvance($query, $state){
         if($state){
             $query->where("state", $state);
         }

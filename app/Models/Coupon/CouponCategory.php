@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class CouponCategory extends Model
 {
     use HasFactory;
-    protected $fillabe = [
+    protected $fillable = [
         "coupon_id",
         "category_id"
     ];
