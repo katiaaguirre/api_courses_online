@@ -10,6 +10,7 @@ use App\Models\Discount\Discount;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Ecommerce\Course\CourseHomeResource;
 use App\Http\Resources\Ecommerce\Course\CourseHomeCollection;
+use App\Http\Resources\Ecommerce\LandingCourse\LandingCourseResource;
 
 class HomeController extends Controller
 {
@@ -50,6 +51,7 @@ class HomeController extends Controller
 
         $DISCOUNT_FLASH_COURSES = collect([]);
         if($DISCOUNT_FLASH){
+            $DISCOUNT_FLASH->end_date = Carbon::parse($DISCOUNT_FLASH->end_date)->addDays(1);
             foreach($DISCOUNT_FLASH->courses as $key => $course_discount){
                 $DISCOUNT_FLASH_COURSES->push(CourseHomeResource::make($course_discount->course));
             }
@@ -74,9 +76,34 @@ class HomeController extends Controller
                 "type_discount" => $DISCOUNT_FLASH->type_discount,
                 "end_date" => Carbon::parse($DISCOUNT_FLASH->end_date)->format("Y-m-d"),
                 "start_date_d" => Carbon::parse($DISCOUNT_FLASH->start_date)->format("Y/m/d"),
-                "end_date_d" => Carbon::parse($DISCOUNT_FLASH->end_date)->format("Y/m/d")
+                "end_date_d" => Carbon::parse($DISCOUNT_FLASH->end_date)->subDay(1)->format("Y/m/d")
             ] : NULL,
             "DISCOUNT_FLASH_COURSES" => $DISCOUNT_FLASH_COURSES
+        ]);
+    }
+
+    public function course_details(Request $request,$slug){
+        $campaign_discount = $request->get("campaign_discount");
+        $discount = null;
+        if($campaign_discount){
+            $discount = Discount::findOrFail($campaign_discount);
+        }
+        $course = Course::where("slug",$slug)->first();
+        if(!$course){
+            return abort(404);
+        }
+        $courses_related_instructor = Course::where("id","<>",$course->id)->where("user_id",$course->user_id)->inRandomOrder()->take(2)->get();
+        $courses_related_categories = Course::where("id","<>",$course->id)->where("category_id",$course->category_id)->inRandomOrder()->take(3)->get();
+
+        return response()->json([
+            "course" => LandingCourseResource::make($course),
+            "courses_related_instructor" => $courses_related_instructor->map(function($course){
+                return CourseHomeResource::make($course);
+            }),
+            "courses_related_categories" => $courses_related_categories->map(function($course){
+                return CourseHomeResource::make($course);
+            }),
+            "DISCOUNT" => $discount
         ]);
     }
 }

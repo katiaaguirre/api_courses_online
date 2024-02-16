@@ -59,6 +59,16 @@ class Course extends Model
    public function sections(){
     return $this->hasMany(CourseSection::class);
    }
+   
+   public function GetCountFilesAttribute(){
+    $count_files = 0;
+    foreach($this->sections as $keyS => $section){
+        foreach($section->clases as $keyC => $clase){
+            $count_files += $clase->files->count();
+        }
+    }
+    return $count_files;
+   }
 
    function AddTime($horas)
     {
@@ -84,7 +94,7 @@ class Course extends Model
         if($this->discount_courses){
             foreach($this->discount_courses as $key => $discount_course){
                 if($discount_course->discount && $discount_course->discount->type_campaign == 1 && $discount_course->discount->state == 1){
-                    if (Carbon::now()->between($discount_course->discount->start_date, $discount_course->discount->end_date)) {
+                    if(Carbon::now()->between($discount_course->discount->start_date,Carbon::parse($discount_course->discount->end_date)->addDays(1))){
                         $discount = $discount_course->discount;
                         break;
                     }
@@ -92,14 +102,16 @@ class Course extends Model
             }
             return $discount;
         }
+        
     }
     
+
     public function getDiscountCTAttribute(){
         $discount = null;
-        if($this->category && $this->category->discount_category){
-            foreach($this->category->discount_category as $key => $discount_category){
+        if($this->category->discount_categories){
+            foreach($this->category->discount_categories as $key => $discount_category){
                 if($discount_category->discount && $discount_category->discount->type_campaign == 1 && $discount_category->discount->state == 1){
-                    if(Carbon::now()->between($discount_category->discount->start_date, $discount_category->discount->end_date)){
+                    if(Carbon::now()->between($discount_category->discount->start_date,Carbon::parse($discount_category->discount->end_date)->addDays(1))){
                         $discount = $discount_category->discount;
                         break;
                     }
@@ -107,7 +119,7 @@ class Course extends Model
             }
             return $discount;
         }
-    }    
+    }
 
    public function getCountClassAttribute(){
     $num = 0;
