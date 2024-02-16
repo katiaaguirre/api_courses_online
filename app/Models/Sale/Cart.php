@@ -1,18 +1,26 @@
 <?php
 
-namespace App\Models\Discount;
+namespace App\Models\Sale;
 
 use Carbon\Carbon;
-use App\Models\Course\Category;
+use App\Models\User;
+use App\Models\Course\Course;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class DiscountCategory extends Model
+class Cart extends Model
 {
     use HasFactory;
     protected $fillable = [
-        "discount_id",
-        "category_id"
+        "user_id",
+        "course_id",
+        "type_discount",
+        "discount",
+        "type_campaign",
+        "coupon_code",
+        "discount_code",
+        "precio_unitario",
+        "total"
     ];
 
     public function setCreatedAtAttribute($value){
@@ -25,11 +33,11 @@ class DiscountCategory extends Model
         $this->attributes["updated_at"] = Carbon::now();
     }
 
-    public function category(){
-        return $this->belongsTo(Category::class);
+    public function user(){
+        return $this->belongsTo(User::class);
     }
 
-    public function discount(){
-        return $this->belongsTo(Discount::class);
+    public function course(){
+        return $this->belongsTo(Course::class);
     }
 }

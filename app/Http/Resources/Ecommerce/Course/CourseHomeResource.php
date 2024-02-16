@@ -15,14 +15,14 @@ class CourseHomeResource extends JsonResource
     public function toArray($request)
     {
         $discount_g = null;
-        if($this->resource->discount_c_t && $this->resource->discount_c){
+        if($this->resource->discount_c && $this->resource->discount_c_t){
             $discount_g = $this->resource->discount_c_t;
         }else{
-            if($this->resource->discount_c_t && !$this->resource->discount_c){
-                $discount_g = $this->resource->discount_c_t;
+            if($this->resource->discount_c && !$this->resource->discount_c_t){
+                $discount_g = $this->resource->discount_c;
             }else{
-                if($this->resource->discount_c_t && !$this->resource->discount_c){
-                    $discount_g = $this->resource->discount_c;
+                if(!$this->resource->discount_c && $this->resource->discount_c_t){
+                    $discount_g = $this->resource->discount_c_t;
                 }
             }
         }
@@ -30,6 +30,7 @@ class CourseHomeResource extends JsonResource
         return [
             "id" => $this->resource->id,
             "title" => $this->resource->title,
+            "slug" => $this->resource->slug,
             "subtitle" => $this->resource->subtitle,
             "image" => env("APP_URL")."storage/".$this->resource->image,
             "precio_usd" => $this->resource->precio_usd,

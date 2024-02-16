@@ -41,4 +41,23 @@ class CourseClase extends Model
     return $this->hasMany(CourseClaseFile::class, "course_clase_id");
    }
    
+   function AddTime($horas)
+    {
+        $total = 0;
+        foreach($horas as $h) {
+            $parts = explode(":", $h);
+            $total += $parts[2] + $parts[1]*60 + $parts[0]*3600;
+        }
+        $hours = floor($total / 3600);
+        $minutes = floor(($total / 60) % 60);
+        $seconds = $total % 60;
+
+        return $hours." hrs ".$minutes." mins";
+    }
+
+    public function getClaseTimeAttribute(){
+        $time = [];
+        array_push($time,$this->time);
+        return $this->AddTime($time);
+   }
 }

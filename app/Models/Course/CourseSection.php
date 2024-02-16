@@ -36,4 +36,26 @@ class CourseSection extends Model
    public function clases(){
     return $this->hasMany(CourseClase::class, "course_section_id");
    }
+
+   function AddTime($horas)
+    {
+        $total = 0;
+        foreach($horas as $h) {
+            $parts = explode(":", $h);
+            $total += $parts[2] + $parts[1]*60 + $parts[0]*3600;
+        }
+        $hours = floor($total / 3600);
+        $minutes = floor(($total / 60) % 60);
+        $seconds = $total % 60;
+
+        return $hours." hrs ".$minutes." mins";
+    }
+
+    public function getSectionTimeAttribute(){
+        $time = [];
+        foreach ($this->clases as $keyC => $clase) {
+            array_push($time,$clase->time);
+        }
+        return $this->AddTime($time);
+   }
 }
