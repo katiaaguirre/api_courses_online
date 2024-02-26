@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Tienda;
 
 use App\Models\Sale\Cart;
 use Illuminate\Http\Request;
+use App\Models\Coupon\Coupon;
+use App\Models\CoursesStudents;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Ecommerce\Cart\CartResource;
 use App\Http\Resources\Ecommerce\Cart\CartCollection;
@@ -43,22 +45,87 @@ class CartController extends Controller
     public function store(Request $request)
     {
         $user = auth('api')->user();
-        $in_cart = Cart::where("user_id",$user->id)->where("course_id",$request->course_id)->first;
+        $has_course = CoursesStudents::where("user_id",$user->id)->where("course_id",$request->course_id)->first();
+        $in_cart = Cart::where("user_id",$user->id)->where("course_id",$request->course_id)->first();
         if($in_cart){
             return response()->json(["message" => 403, "message_text" => "EL CURSO YA EXISTE EN LA LISTA"]);
         }
-
+        if($has_course){
+            return response()->json(["message" => 403, "message_text" => "YA HAS ADQUIRIDO ESTE CURSO"]);
+        }
+        
         $request->request->add(["user_id" => $user->id]);
         $cart = Cart::create($request->all());
         return response()->json(["cart" => CartResource::make($cart)]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    public function apply_coupon(Request $request){
+        $cupon = Coupon::where("code",$request->code)->where("state",1)->first();
+
+        if(!$cupon){
+            return response()->json(["message" => 403, "message_text" => "EL CUPÓN INGRESADO NO EXISTE"]);
+        }
+        $carts = Cart::where("user_id",auth('api')->user()->id)->get();
+        foreach($carts as $key => $cart){
+            if($cupon->type_coupon == 1){
+                $EXISTS_COURSE_COUPON = false;
+                foreach($cupon->courses as $key => $course){
+                    if($course->course_id == $cart->course_id){
+                        $EXISTS_COURSE_COUPON = true;
+                        break;
+                    }
+                }
+                if($EXISTS_COURSE_COUPON){
+                    $total = 0;
+                    if($cupon->type_discount == 1){
+                        $total = $cart->precio_unitario - $cart->precio_unitario*($cupon->discount*0.01);
+                    }
+                    if($cupon->type_discount == 2){
+                        $total = $cart->precio_unitario - $cupon->discount;
+                    }
+                    $cart->update([
+                        "type_discount" => $cupon->type_discount,
+                        "discount" => $cupon->discount,
+                        "type_campaign" => NULL,
+                        "coupon_code" => $cupon->code,
+                        "discount_code" => NULL,
+                        "total" => $total
+                    ]);
+
+                    
+                }
+            }
+            if($cupon->type_coupon == 2){
+                $EXISTS_CATEGORY_COUPON = false;
+                foreach($cupon->categories as $key => $category){
+                    if($category->category_id == $cart->course->category_id){
+                        $EXISTS_CATEGORY_COUPON = true;
+                        break;
+                    }
+                }
+                if($EXISTS_CATEGORY_COUPON){
+                    $total = 0;
+                    if($cupon->type_discount == 1){
+                        $total = $cart->precio_unitario - $cart->precio_unitario*($cupon->discount*0.01);
+                    }
+                    if($cupon->type_discount == 2){
+                        $total = $cart->precio_unitario - $cupon->discount;
+                    }
+                    $cart->update([
+                        "type_discount" => $cupon->type_discount,
+                        "discount" => $cupon->discount,
+                        "type_campaign" => NULL,
+                        "coupon_code" => $cupon->code,
+                        "discount_code" => NULL,
+                        "total" => $total
+                    ]);
+                }
+            }
+        }
+        $carts = Cart::where("user_id",auth('api')->user()->id)->get();
+        return response()->json(["carts" => CartCollection::make($carts)]);
+    }
+
     public function show($id)
     {
         //

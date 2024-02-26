@@ -38,6 +38,9 @@ class CourseHomeResource extends JsonResource
             "count_class" => $this->resource->count_class,
             "course_time" => $this->resource->course_time,
             "discount_g" => $discount_g,
+            "count_students" => $this->resource->count_students,
+            "avg_review" => $this->resource->avg_review ? round($this->resource->avg_review,2) : 0,
+            "count_reviews" => $this->resource->count_reviews,
             "instructor" => $this->resource->instructor ? [
                 "id" => $this->resource->instructor->id,
                 "full_name" => $this->resource->instructor->name. ' '. $this->resource->instructor->surname,

@@ -6,9 +6,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Tienda\CartController;
 use App\Http\Controllers\Tienda\HomeController;
+use App\Http\Controllers\Tienda\ReviewController;
+use App\Http\Controllers\Tienda\CheckoutController;
 use App\Http\Controllers\Admin\Coupon\CouponController;
 use App\Http\Controllers\Admin\Course\ClaseGController;
 use App\Http\Controllers\Admin\Course\CourseGController;
+use App\Http\Controllers\Tienda\ProfileClientController;
 use App\Http\Controllers\Admin\Course\CategoryController;
 use App\Http\Controllers\Admin\Course\SectionGController;
 use App\Http\Controllers\Admin\Discount\DiscountController;
@@ -66,6 +69,19 @@ Route::group([
 
 Route::group(["prefix" => "ecommerce"], function($router) {
     Route::get("home", [HomeController::class, "home"]);
+    Route::get("config_all", [HomeController::class, "config_all"]);
+    Route::post("list_courses", [HomeController::class, "listCourses"]);
     Route::get("course_details/{slug}", [HomeController::class, "course_details"]);
+    
+    Route::group([
+        'middleware' => 'api',
+    ], function ($router){
+    Route::get("course_leason/{slug}", [HomeController::class, "course_leason"]);
+    Route::post('/apply_coupon', [CartController::class, "apply_coupon"]);
     Route::resource('/cart', CartController::class);
+    Route::post('/checkout', [CheckoutController::class,"store"]);
+    Route::post('/profile', [ProfileClientController::class,"profile"]);
+    Route::post('/update_client', [ProfileClientController::class,"update_client"]);
+    Route::resource('/review', ReviewController::class);
+    });  
 });

@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Tienda;
 
 use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Course\Course;
 use App\Models\Course\Category;
+use App\Models\CoursesStudents;
 use App\Models\Discount\Discount;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\Ecommerce\Course\CourseHomeResource;
 use App\Http\Resources\Ecommerce\Course\CourseHomeCollection;
 use App\Http\Resources\Ecommerce\LandingCourse\LandingCourseResource;
@@ -22,6 +26,7 @@ class HomeController extends Controller
         ->having("courses_count",">",0)->orderBy("id", "desc")->take(5)->get();
         
         $group_category_courses = collect([]);
+        
         foreach($category_courses as $key => $category_course){
             $group_category_courses->push([
                 "id" => $category_course->id,
@@ -63,7 +68,7 @@ class HomeController extends Controller
                     "id" => $category->id,
                     "name" => $category->name,
                     "image" => env("APP_URL")."storage/".$category->image,
-                    "course_count" => $category->courses_count
+                    "count_courses" => $category->count_courses
                 ];
             }),
             "courses_home" => CourseHomeCollection::make($courses),
@@ -73,10 +78,12 @@ class HomeController extends Controller
             "DISCOUNT_FLASH" => $DISCOUNT_FLASH ? [
                 "id" => $DISCOUNT_FLASH->id,
                 "discount" => $DISCOUNT_FLASH->discount,
+                "code" => $DISCOUNT_FLASH->code,
+                "type_campaign" => $DISCOUNT_FLASH->type_campaign,
                 "type_discount" => $DISCOUNT_FLASH->type_discount,
                 "end_date" => Carbon::parse($DISCOUNT_FLASH->end_date)->format("Y-m-d"),
                 "start_date_d" => Carbon::parse($DISCOUNT_FLASH->start_date)->format("Y/m/d"),
-                "end_date_d" => Carbon::parse($DISCOUNT_FLASH->end_date)->subDay(1)->format("Y/m/d")
+                "end_date_d" => Carbon::parse($DISCOUNT_FLASH->end_date)->subDays(1)->format("Y/m/d")
             ] : NULL,
             "DISCOUNT_FLASH_COURSES" => $DISCOUNT_FLASH_COURSES
         ]);
@@ -89,8 +96,15 @@ class HomeController extends Controller
             $discount = Discount::findOrFail($campaign_discount);
         }
         $course = Course::where("slug",$slug)->first();
+        $has_course = false;
         if(!$course){
             return abort(404);
+        }
+        if(Auth::guard('api')->check()){
+            $course_student = CoursesStudents::where("user_id",auth('api')->user()->id)->where("course_id",$course->id)->first();
+            if($course_student){
+                $has_course = true;
+            }
         }
         $courses_related_instructor = Course::where("id","<>",$course->id)->where("user_id",$course->user_id)->inRandomOrder()->take(2)->get();
         $courses_related_categories = Course::where("id","<>",$course->id)->where("category_id",$course->category_id)->inRandomOrder()->take(3)->get();
@@ -103,7 +117,59 @@ class HomeController extends Controller
             "courses_related_categories" => $courses_related_categories->map(function($course){
                 return CourseHomeResource::make($course);
             }),
-            "DISCOUNT" => $discount
+            "DISCOUNT" => $discount,
+            "has_course" => $has_course
+        ]);
+    }
+
+    public function course_leason(Request $request,$slug){
+        
+        $course = Course::where("slug",$slug)->first();
+
+        if(!$course){
+            return response()->json(["message" => 403, "message_text" => "EL CURSO NO EXISTE"]);
+        }
+        
+        $course_student = CoursesStudents::where("course_id",$course->id)->where("user_id",auth('api')->user()->id)->first();
+        if(!$course_student){
+            return response()->json(["message" => 403, "message_text" => "NO ESTÁS INSCRITO EN ESTE CURSO"]);
+        }
+
+        return response()->json([
+            "course" => LandingCourseResource::make($course)
+        ]);
+    }
+
+    public function listCourses(Request $request){
+        $search = $request->search;
+        $selected_categories = $request->selected_categories ?? [];
+        $min_price = $request->min_price;
+        $max_price = $request->max_price;
+        $selected_idiomas = $request->selected_idiomas ?? [];
+        $selected_levels = $request->selected_levels ?? [];
+        $selected_rating = $request->selected_rating;
+
+        $courses_a = [];
+        if($selected_rating){
+            $courses_query = Course::where("state",2)->join("reviews","reviews.course_id","=","courses.id")
+            ->select("courses.id as courseId",DB::raw("AVG(reviews.rating) as review_rating"))
+            ->groupBy("courseId")->having("review_rating",">=",$selected_rating)
+            ->having("review_rating","<",$selected_rating + 1)->get();
+            
+            $courses_a = $courses_query->pluck("courseId")->toArray();
+        }
+       
+        $courses = Course::filterAdvanceEcommerce($search,$selected_categories,$min_price,$max_price,
+        $selected_idiomas,$selected_levels,$courses_a,$selected_rating)->where("state",2)->orderBy("id","desc")->get();
+        return response()->json(["courses" => CourseHomeCollection::make($courses)]);
+    }
+
+    public function config_all(){
+        $categories = Category::where("category_id", NULL)->withCount("courses")->orderBy("id", "desc")->get();
+        return response()->json([
+            "categories" => $categories,
+            "levels" => ["Básico","Intermedio","Avanzado"],
+            "idiomas" => ["Español","Inglés","Francés","Portugués"],
         ]);
     }
 }

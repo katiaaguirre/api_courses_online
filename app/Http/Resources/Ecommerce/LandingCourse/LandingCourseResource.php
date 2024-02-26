@@ -10,14 +10,14 @@ class LandingCourseResource extends JsonResource
     public function toArray($request)
     {
         $discount_g = null;
-        if($this->resource->discount_c_t && $this->resource->discount_c){
+        if($this->resource->discount_c && $this->resource->discount_c_t){
             $discount_g = $this->resource->discount_c_t;
         }else{
-            if($this->resource->discount_c_t && !$this->resource->discount_c){
-                $discount_g = $this->resource->discount_c_t;
+            if($this->resource->discount_c && !$this->resource->discount_c_t){
+                $discount_g = $this->resource->discount_c;
             }else{
-                if($this->resource->discount_c_t && !$this->resource->discount_c){
-                    $discount_g = $this->resource->discount_c;
+                if(!$this->resource->discount_c && $this->resource->discount_c_t){
+                    $discount_g = $this->resource->discount_c_t;
                 }
             }
         }
@@ -46,6 +46,9 @@ class LandingCourseResource extends JsonResource
             "count_class" => $this->resource->count_class,
             "course_time" => $this->resource->course_time,
             "count_files" => $this->resource->count_files,
+            "count_students" => $this->resource->count_students,
+            "count_reviews" => $this->resource->count_reviews,
+            "avg_review" => $this->resource->avg_review ? round($this->resource->avg_review,2) : 0,
             "discount_g" => $discount_g,
             "discount_date" => $discount_g ? Carbon::parse($discount_g->end_date)->format("d/m") : NULL,
             "description" => $this->resource->description,
@@ -56,8 +59,11 @@ class LandingCourseResource extends JsonResource
                 "full_name" => $this->resource->instructor->name. ' '. $this->resource->instructor->surname,
                 "avatar" => env("APP_URL")."storage/".$this->resource->instructor->avatar,
                 "profesion" => $this->resource->instructor->profesion,
+                "description" => $this->resource->instructor->description,
+                "avg_review" => round($this->resource->instructor->avg_review,2),
+                "count_reviews" => $this->resource->instructor->count_reviews,
                 "count_courses" => $this->resource->instructor->count_courses,
-                "description" => $this->resource->instructor->description
+                "count_students" => $this->resource->instructor->count_students,
             ] : NULL,
             "malla" => $this->resource->sections->map(function($section){
                 return [
@@ -68,10 +74,28 @@ class LandingCourseResource extends JsonResource
                         return [
                             "id" => $clase->id,
                             "name" => $clase->name,
-                            "clase_time" => $clase->clase_time
+                            "clase_time" => $clase->clase_time,
+                            "url_video" => $clase->url_video,
+                            "files" => $clase->files->map(function($file){
+                                return [
+                                    "name" => $file->name_file,
+                                    "url" => env("APP_URL")."storage/".$file->file,
+                                    "size" => $file->size
+                                ];
+                            })
                         ];
                     }),
-                    "updated_at" => $this->resource->updated_at->format("m/Y")
+                ];
+            }),
+            "updated_at" => $this->resource->updated_at->format("m/Y"),
+            "reviews" => $this->resource->reviews->map(function($review){
+                return [
+                    "message" => $review->message,
+                    "rating" => $review->rating,
+                    "user" => [
+                        "full_name" => $review->user->name.' '.$review->user->surname,
+                        "avatar" => env("APP_URL")."storage/".$review->user->avatar
+                    ]   
                 ];
             })
         ];

@@ -4,6 +4,8 @@ namespace App\Models\Course;
 
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Sale\Review;
+use App\Models\CoursesStudents;
 use App\Models\Course\CourseSection;
 use App\Models\Discount\DiscountCourse;
 use Illuminate\Database\Eloquent\Model;
@@ -59,7 +61,19 @@ class Course extends Model
    public function sections(){
     return $this->hasMany(CourseSection::class);
    }
-   
+
+   public function discount_courses(){
+    return $this->hasMany(DiscountCourse::class);
+   }
+
+   public function courses_students(){
+    return $this->hasMany(CoursesStudents::class);
+   }
+
+   public function reviews(){
+    return $this->hasMany(Review::class);
+   }
+
    public function GetCountFilesAttribute(){
     $count_files = 0;
     foreach($this->sections as $keyS => $section){
@@ -82,10 +96,6 @@ class Course extends Model
         $seconds = $total % 60;
 
         return $hours." hrs ".$minutes." mins";
-    }
-
-    public function discount_courses(){
-        return $this->hasMany(DiscountCourse::class);
     }
 
     public function getDiscountCAttribute(){
@@ -139,6 +149,18 @@ class Course extends Model
         return $this->AddTime($time);
    }
 
+   public function getCountStudentsAttribute(){
+    return $this->courses_students->count();
+   }
+
+   public function getCountReviewsAttribute(){
+    return $this->reviews->count();
+   }
+
+   public function getAvgReviewAttribute(){
+    return $this->reviews->avg("rating");
+   }
+
    function scopeFilterAdvance($query, $search, $state){
     if($search){
         $query->where("title","like","%".$search."%");
@@ -148,5 +170,28 @@ class Course extends Model
     }
 
     return $query;
-}
+    }
+
+    function scopeFilterAdvanceEcommerce($query, $search, $selected_categories = [], $min_price = 0, $max_price = 0,
+    $selected_idiomas = [],$selected_levels = [],$courses_a = [],$selected_rating = 0){
+        if($search){
+            $query->where("title","like","%".$search."%");
+        }
+        if(sizeof($selected_categories) > 0){
+            $query->whereIn("category_id",$selected_categories);
+        }
+        if($min_price > 0 && $max_price > 0){
+            $query->whereBetween("precio_mxn",[$min_price,$max_price]);
+        }
+        if(sizeof($selected_idiomas) > 0){
+            $query->whereIn("idioma",$selected_idiomas);
+        }
+        if(sizeof($selected_levels) > 0){
+            $query->whereIn("level",$selected_levels);
+        }
+        if($courses_a || $selected_rating){
+            $query->whereIn("id",$courses_a);
+        }
+        return $query;
+    }
 }
