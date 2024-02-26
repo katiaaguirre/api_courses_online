@@ -29,7 +29,8 @@ class User extends Authenticatable implements JWTSubject
         "type_user",// 1 es de tipo cliente y 2 es de tipo admin
         "is_instructor",
         "profesion",
-        "description"
+        "description",
+        "phone"
     ];
 
     /**
@@ -82,6 +83,19 @@ class User extends Authenticatable implements JWTSubject
     public function getCountCoursesAttribute(){
         return $this->courses->count();
     }
+
+    public function getAvgReviewAttribute(){
+        return $this->courses->avg("avg_review");
+    }
+
+    public function getCountReviewsAttribute(){
+        return $this->courses->sum("count_reviews");
+    }
+
+    public function getCountStudentsAttribute(){
+        return $this->courses->count("count_students");
+    }
+
 
     function scopeFilterAdvance($query, $search, $state){
         if($search){

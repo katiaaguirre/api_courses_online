@@ -1,23 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Course;
+namespace App\Http\Controllers\Tienda;
 
+use App\Mail\SaleMail;
+use App\Models\Sale\Cart;
+use App\Models\Sale\Sale;
 use Illuminate\Http\Request;
+use App\Models\CoursesStudents;
+use App\Models\Sale\SalesDetails;
 use App\Http\Controllers\Controller;
-use App\Models\Course\CourseSection;
+use Illuminate\Support\Facades\Mail;
 
-class SectionGController extends Controller
+class CheckoutController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index()
     {
-        $sections = CourseSection::withCount("clases")->where("course_id", $request->course_id)->orderBy("id","asc")->get();
-
-        return response()->json(["sections" => $sections]);
+        //
     }
 
     /**
@@ -38,9 +41,25 @@ class SectionGController extends Controller
      */
     public function store(Request $request)
     {
-        $section = CourseSection::create($request->all());
+        $request->request->add(["user_id" => auth("api")->user()->id]);
+        $sale = Sale::create($request->all());
 
-        return response()->json(["section" => $section]);
+        $carts = Cart::where("user_id",auth('api')->user()->id)->get();
+
+        foreach($carts as $key => $cart){
+            $new_detail = [];
+            $new_detail = $cart->toArray();
+            $new_detail["sale_id"] = $sale->id;
+            SalesDetails::create($new_detail);
+            CoursesStudents::create([
+                "course_id" => $new_detail["course_id"],
+                "user_id" => auth('api')->user()->id
+            ]);
+        }
+
+        // CÓDIGO PARA EL ENVÍO DE CORREO
+        Mail::to($sale->user->email)->send(new SaleMail($sale));
+        return response()->json(["message" => 200, "message_text" => "LOS CURSOS SE HAN ADQUIRIDO CORRECTAMENTE"]);
     }
 
     /**
@@ -74,10 +93,7 @@ class SectionGController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $section = CourseSection::findOrFail($id);
-        $section->update($request->all());
-
-        return response()->json(["section" => $section]);
+        //
     }
 
     /**
@@ -88,14 +104,6 @@ class SectionGController extends Controller
      */
     public function destroy($id)
     {
-        $section = CourseSection::findOrFail($id);
-
-        if($section->clases !== null && $section->clases->count() > 0){
-            return response()->json(["message" => 403, "message_text" => "NO PUEDES ELIMINAR ESTA SECCIÓN PORQUE TIENE CLASES DENTRO"]);
-        }
-        $section->delete();
-        
-        return response()->json(["message" => 200]);
-        
+        //
     }
 }
