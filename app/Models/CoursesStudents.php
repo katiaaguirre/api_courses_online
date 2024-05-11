@@ -13,6 +13,7 @@ class CoursesStudents extends Model
     protected $fillable = [
         "course_id",
         "user_id",
+        "last_class",
         "checked_clases",
         "state" // 2 quiere decir que el curso ha sido finalizado
     ];

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Course;
 
+use Illuminate\Support\Str;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CourseGResource extends JsonResource
@@ -36,8 +37,9 @@ class CourseGResource extends JsonResource
             "user" => [
                 "id" => $this->resource->instructor->id,
                 "full_name" => $this->resource->instructor->name.' '.$this->resource->instructor->surname,
-                "email" => $this->resource->instructor->email
-            ],
+                "email" => $this->resource->instructor->email,
+                "slug" => $this->resource->instructor->slug
+            ],            
             "level" => $this->resource->level,
             "idioma" => $this->resource->idioma,
             "url_video" => $this->resource->url_video,

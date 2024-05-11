@@ -95,7 +95,11 @@ class Course extends Model
         $minutes = floor(($total / 60) % 60);
         $seconds = $total % 60;
 
-        return $hours." hrs ".$minutes." mins";
+        if ($hours > 0) {
+            return $hours . " h " . $minutes . " min";
+        } else {
+            return $minutes . " min";
+        }
     }
 
     public function getDiscountCAttribute(){
