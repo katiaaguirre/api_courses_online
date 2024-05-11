@@ -50,6 +50,7 @@ class CheckoutController extends Controller
             $new_detail = [];
             $new_detail = $cart->toArray();
             $new_detail["sale_id"] = $sale->id;
+            $new_detail["user_id"] = auth('api')->user()->id;
             SalesDetails::create($new_detail);
             CoursesStudents::create([
                 "course_id" => $new_detail["course_id"],
@@ -57,9 +58,14 @@ class CheckoutController extends Controller
             ]);
         }
 
+        $user = auth('api')->user();
+        Cart::where('user_id', $user->id)->delete();
+    
+
         // CÓDIGO PARA EL ENVÍO DE CORREO
         Mail::to($sale->user->email)->send(new SaleMail($sale));
-        return response()->json(["message" => 200, "message_text" => "LOS CURSOS SE HAN ADQUIRIDO CORRECTAMENTE"]);
+        return response()->json(["message" => 200, "message_text" => "Los cursos se han adquirido correctamente"]);
+        
     }
 
     /**

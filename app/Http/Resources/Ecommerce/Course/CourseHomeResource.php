@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Ecommerce\Course;
 
+use Illuminate\Support\Str;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CourseHomeResource extends JsonResource
@@ -45,6 +46,7 @@ class CourseHomeResource extends JsonResource
                 "id" => $this->resource->instructor->id,
                 "full_name" => $this->resource->instructor->name. ' '. $this->resource->instructor->surname,
                 "avatar" => env("APP_URL")."storage/".$this->resource->instructor->avatar,
+                "slug" => $this->resource->instructor->slug
             ] : NULL
         ];
     }

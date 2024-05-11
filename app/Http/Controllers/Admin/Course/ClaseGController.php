@@ -139,8 +139,9 @@ class ClaseGController extends Controller
 
     public function RemoveFiles($id){
         $course_clase_file = CourseClaseFile::findOrFail($id);
+        Storage::delete($course_clase_file->file);
         $course_clase_file->delete();
-
+    
         return response()->json(["message" => 200]);
     }
     /**
@@ -151,8 +152,18 @@ class ClaseGController extends Controller
      */
     public function destroy($id)
     {
+
         $clase = CourseClase::findOrFail($id);
+
+        $claseFiles = CourseClaseFile::where('course_clase_id', $clase->id)->get();
+        foreach ($claseFiles as $claseFile) {
+            Storage::delete($claseFile->file);
+            $claseFile->delete();
+        }
+
         $clase->delete();
+
         return response()->json(["message" => 200]);
+
     }
 }

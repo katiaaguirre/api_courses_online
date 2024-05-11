@@ -17,7 +17,6 @@ class CourseClaseCollection extends ResourceCollection
     {
         return [
             "data" => CourseClaseResource::collection($this->collection),
-            
         ];
     }
 }

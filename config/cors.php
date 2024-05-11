@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => ['https://admin.learningmusic.online', 'https://tienda.learningmusic.online', 'http://localhost:5000', 'http://localhost:4200'],
 
     'allowed_origins_patterns' => [],
 
@@ -30,6 +30,4 @@ return [
     'max_age' => 0,
 
     'supports_credentials' => false,
-    
-
 ];

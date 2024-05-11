@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Ecommerce\LandingCourse;
 
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class LandingCourseResource extends JsonResource
@@ -26,6 +27,7 @@ class LandingCourseResource extends JsonResource
             "id" => $this->resource->id,
             "title" => $this->resource->title,
             "subtitle" => $this->resource->subtitle,
+            "slug" => $this->resource->slug,
             "category_id" => $this->resource->category_id,
             "category" => [
                 "id" => $this->resource->category->id,
@@ -50,7 +52,7 @@ class LandingCourseResource extends JsonResource
             "count_reviews" => $this->resource->count_reviews,
             "avg_review" => $this->resource->avg_review ? round($this->resource->avg_review,2) : 0,
             "discount_g" => $discount_g,
-            "discount_date" => $discount_g ? Carbon::parse($discount_g->end_date)->format("d/m") : NULL,
+            "discount_date" => $discount_g ? "el ".Carbon::parse($discount_g->end_date)->format("d/m") : "pronto",
             "description" => $this->resource->description,
             "requirements" => json_decode($this->resource->requirements),
             "who_is_it_for" => json_decode($this->resource->who_is_it_for),
@@ -58,6 +60,7 @@ class LandingCourseResource extends JsonResource
                 "id" => $this->resource->instructor->id,
                 "full_name" => $this->resource->instructor->name. ' '. $this->resource->instructor->surname,
                 "avatar" => env("APP_URL")."storage/".$this->resource->instructor->avatar,
+                "slug" => $this->resource->instructor->slug,
                 "profesion" => $this->resource->instructor->profesion,
                 "description" => $this->resource->instructor->description,
                 "avg_review" => round($this->resource->instructor->avg_review,2),

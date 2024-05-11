@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
-use App\Models\User;
 use Validator;
+use App\Models\User;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -30,6 +31,7 @@ class AuthController extends Controller
         // confirmed
         $validator = Validator::make(request()->all(), [
             'name' => 'required',
+            'surname' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
         ]);
@@ -37,13 +39,25 @@ class AuthController extends Controller
         if($validator->fails()){
             return response()->json($validator->errors()->toJson(), 400);
         }
- 
+         // Generar el slug inicial
+        $baseSlug = Str::slug(request()->name . '-' . request()->surname);
+        $slug = $baseSlug;
+        $suffix = 1;
+
+        // Verificar si ya existe un usuario con el mismo slug
+        while (User::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $suffix;
+            $suffix++;
+        }
+
         $user = new User;
         $user->name = request()->name;
+        $user->surname = request()->surname;
         $user->email = request()->email;
         $user->password = bcrypt(request()->password);
+        $user->slug = $slug;
         $user->save();
- 
+
         return response()->json($user, 201);
     }
  

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Ecommerce\Cart;
 
+use Illuminate\Support\Str;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CartResource extends JsonResource
@@ -22,7 +23,11 @@ class CartResource extends JsonResource
                 "title" => $this->resource->course->title,
                 "image" => env("APP_URL")."storage/".$this->resource->course->image,
                 "subtitle" => $this->resource->course->subtitle,
-                "slug" => $this->resource->course->slug
+                "slug" => $this->resource->course->slug,
+                "instructor" => $this->resource->course->instructor ? [
+                    "full_name" => $this->resource->course->instructor->name. ' '. $this->resource->course->instructor->surname,
+                    "slug" => $this->resource->course->instructor->slug
+                ] : NULL
             ],
             "type_discount" => $this->resource->type_discount,
             "discount" => $this->resource->discount,

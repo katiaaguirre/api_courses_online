@@ -145,6 +145,9 @@ class CourseGController extends Controller
     public function destroy($id)
     {
         $course = Course::findOrFail($id);
+        if($course->image){
+            Storage::delete($course->image);
+         }
         $course->delete();
         return response()->json(["message" => 200]);
     }

@@ -48,10 +48,10 @@ class CartController extends Controller
         $has_course = CoursesStudents::where("user_id",$user->id)->where("course_id",$request->course_id)->first();
         $in_cart = Cart::where("user_id",$user->id)->where("course_id",$request->course_id)->first();
         if($in_cart){
-            return response()->json(["message" => 403, "message_text" => "EL CURSO YA EXISTE EN LA LISTA"]);
+            return response()->json(["message" => 403, "message_text" => "El curso ya existe en la lista"]);
         }
         if($has_course){
-            return response()->json(["message" => 403, "message_text" => "YA HAS ADQUIRIDO ESTE CURSO"]);
+            return response()->json(["message" => 403, "message_text" => "Ya has adquirido este curso"]);
         }
         
         $request->request->add(["user_id" => $user->id]);
@@ -63,7 +63,7 @@ class CartController extends Controller
         $cupon = Coupon::where("code",$request->code)->where("state",1)->first();
 
         if(!$cupon){
-            return response()->json(["message" => 403, "message_text" => "EL CUPÓN INGRESADO NO EXISTE"]);
+            return response()->json(["message" => 403, "message_text" => "El cupón ingresado no existe"]);
         }
         $carts = Cart::where("user_id",auth('api')->user()->id)->get();
         foreach($carts as $key => $cart){

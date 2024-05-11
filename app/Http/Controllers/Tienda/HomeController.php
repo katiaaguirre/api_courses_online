@@ -9,6 +9,7 @@ use App\Models\Course\Course;
 use App\Models\Course\Category;
 use App\Models\CoursesStudents;
 use App\Models\Discount\Discount;
+use App\Models\Course\CourseClase;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -82,10 +83,10 @@ class HomeController extends Controller
                 "type_campaign" => $DISCOUNT_FLASH->type_campaign,
                 "type_discount" => $DISCOUNT_FLASH->type_discount,
                 "end_date" => Carbon::parse($DISCOUNT_FLASH->end_date)->format("Y-m-d"),
-                "start_date_d" => Carbon::parse($DISCOUNT_FLASH->start_date)->format("Y/m/d"),
-                "end_date_d" => Carbon::parse($DISCOUNT_FLASH->end_date)->subDays(1)->format("Y/m/d")
+                "start_date_d" => Carbon::parse($DISCOUNT_FLASH->start_date)->format("d/m/Y"),
+                "end_date_d" => Carbon::parse($DISCOUNT_FLASH->end_date)->subDays(1)->format("d/m/Y")
             ] : NULL,
-            "DISCOUNT_FLASH_COURSES" => $DISCOUNT_FLASH_COURSES
+            "DISCOUNT_FLASH_COURSES" => $DISCOUNT_FLASH_COURSES,
         ]);
     }
 
@@ -98,6 +99,7 @@ class HomeController extends Controller
         $course = Course::where("slug",$slug)->first();
         $has_course = false;
         if(!$course){
+            return response()->json(["message" => 404, "message_text" => "El curso no existe"]);
             return abort(404);
         }
         if(Auth::guard('api')->check()){
@@ -122,23 +124,49 @@ class HomeController extends Controller
         ]);
     }
 
-    public function course_leason(Request $request,$slug){
+    public function course_leason(Request $request, $slug) {
+        $course = Course::where("slug", $slug)->first();
         
-        $course = Course::where("slug",$slug)->first();
-
-        if(!$course){
-            return response()->json(["message" => 403, "message_text" => "EL CURSO NO EXISTE"]);
+        if (!$course) {
+            return response()->json(["message" => 404, "message_text" => "El curso no existe"]);
         }
         
-        $course_student = CoursesStudents::where("course_id",$course->id)->where("user_id",auth('api')->user()->id)->first();
-        if(!$course_student){
-            return response()->json(["message" => 403, "message_text" => "NO ESTÁS INSCRITO EN ESTE CURSO"]);
+        $course_student = CoursesStudents::where("user_id", auth('api')->user()->id)
+            ->where("course_id", $course->id)
+            ->first();
+    
+        if (!$course_student) {
+            return response()->json(["message" => 403, "message_text" => "No estás inscrito en este curso"]);
         }
-
+    
+        $checked_clases = $course_student->checked_clases ? explode(",", $course_student->checked_clases) : [];
+        $percentage_completed = round((sizeof($checked_clases) / $course->count_class) * 100);
+    
+        $last_class_id = $course_student->last_class;
+        if (!is_null($last_class_id)) {
+            $last_class = CourseClase::with('files')
+                ->find($last_class_id);
+    
+            if (!$last_class) {
+                return response()->json(["message" => 404, "message_text" => "La clase seleccionada no existe"]);
+            }
+    
+            return response()->json([
+                "course" => LandingCourseResource::make($course),
+                "percentage_completed" => $percentage_completed,
+                "last_class" => $last_class,
+                "checked_clases" => $checked_clases
+            ]);
+        }
+    
         return response()->json([
-            "course" => LandingCourseResource::make($course)
+            "course" => LandingCourseResource::make($course),
+            "percentage_completed" => $percentage_completed,
+            "checked_clases" => $checked_clases
         ]);
     }
+    
+    
 
     public function listCourses(Request $request){
         $search = $request->search;
@@ -172,4 +200,54 @@ class HomeController extends Controller
             "idiomas" => ["Español","Inglés","Francés","Portugués"],
         ]);
     }
+
+    public function CheckedClases(Request $request, $slug)
+    {
+        $course = Course::where("slug", $slug)->first();
+    
+        if(!$course){
+            return response()->json(["message" => 404, "message_text" => "El curso no existe"]);
+        }
+        
+        $course_student = CoursesStudents::where("course_id", $course->id)
+            ->where("user_id", auth('api')->user()->id)
+            ->first();
+    
+        if (!$course_student) {
+            return response()->json(["message" => 403, "message_text" => "No estás inscrito en este curso"]);
+        }
+    
+        $clasesMarcadas = $request->input('checked_clases', []);
+
+        $clasesMarcadasString = implode(',', $clasesMarcadas);
+
+        $course_student->update(['checked_clases' => $clasesMarcadasString]);
+
+        return response()->json(['message' => 'Clases marcadas actualizadas con éxito']);
+    }
+
+
+    public function LastClass(Request $request, $slug)
+    {
+        $course = Course::where("slug", $slug)->first();
+
+        if (!$course) {
+            return response()->json(["message" => 404, "message_text" => "El curso no existe"]);
+        }
+
+        $course_student = CoursesStudents::where("course_id", $course->id)
+            ->where("user_id", auth('api')->user()->id)
+            ->first();
+
+        if (!$course_student) {
+            return response()->json(["message" => 403, "message_text" => "No estás inscrito en este curso"]);
+        }
+
+        $clase = $request->input('last_class');
+
+        $course_student->update(['last_class' => $clase]);
+
+        return response()->json(['message' => 'Última clase seleccionada actualizada con éxito']);
+    }
+
 }
